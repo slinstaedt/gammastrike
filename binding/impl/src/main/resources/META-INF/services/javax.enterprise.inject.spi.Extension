@@ -1,0 +1,3 @@
+org.gammastrike.binding.impl.BindingExtension
+org.gammastrike.binding.impl.BindingManager
+org.gammastrike.binding.impl.BeanReplacementExtension
