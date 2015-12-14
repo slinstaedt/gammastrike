@@ -1,9 +1,10 @@
 package org.gammastrike.factory.impl;
 
+import static java.util.Objects.requireNonNull;
+
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.CDI;
-import javax.inject.Provider;
+import javax.inject.Inject;
 
 import org.apache.deltaspike.core.util.metadata.builder.ContextualLifecycle;
 
@@ -18,21 +19,19 @@ import org.apache.deltaspike.core.util.metadata.builder.ContextualLifecycle;
  */
 public class ManualParameterLifecycle<T> implements ContextualLifecycle<T> {
 
-	private Provider<MethodInvocationArgumentHolder> holder;
+	private final MethodInvocationArgumentHolder holder;
+
+	@Inject
+	public ManualParameterLifecycle(MethodInvocationArgumentHolder holder) {
+		this.holder = requireNonNull(holder);
+	}
 
 	@Override
 	public T create(Bean<T> bean, CreationalContext<T> creationalContext) {
-		return holder().methodArgumentFor(bean);
+		return holder.methodArgumentFor(bean);
 	}
 
 	@Override
 	public void destroy(Bean<T> bean, T instance, CreationalContext<T> creationalContext) {
-	}
-
-	private MethodInvocationArgumentHolder holder() {
-		if (holder == null) {
-			holder = CDI.current().select(MethodInvocationArgumentHolder.class);
-		}
-		return holder.get();
 	}
 }

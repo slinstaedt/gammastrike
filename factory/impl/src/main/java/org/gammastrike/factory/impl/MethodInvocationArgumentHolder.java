@@ -1,5 +1,7 @@
 package org.gammastrike.factory.impl;
 
+import static java.util.Objects.requireNonNull;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -8,7 +10,6 @@ import javax.enterprise.context.ContextNotActiveException;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.Typed;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
@@ -22,21 +23,49 @@ import javax.inject.Inject;
 public interface MethodInvocationArgumentHolder {
 
 	/**
-	 * Producer for {@link MethodInvocationArgumentHolder}.
+	 * Delegate implementation for for {@link MethodInvocationArgumentHolder}.
 	 *
 	 * @author sven.linstaedt
 	 */
-	class MethodInvocationArgumentHolderProducer {
+	@ApplicationScoped
+	class MethodInvocationArgumentHolderDelegate implements MethodInvocationArgumentHolder {
 
-		@Produces
-		@Dependent
-		MethodInvocationArgumentHolder produce(BeanManager manager, Instance<MethodInvocationArgumentHolder> instance) {
+		private final BeanManager manager;
+		private final Instance<MethodInvocationArgumentHolder> instance;
+
+		MethodInvocationArgumentHolderDelegate() {
+			manager = null;
+			instance = null;
+		}
+
+		@Inject
+		public MethodInvocationArgumentHolderDelegate(BeanManager manager, Instance<MethodInvocationArgumentHolder> instance) {
+			this.manager = requireNonNull(manager);
+			this.instance = requireNonNull(instance);
+		}
+
+		@Override
+		public MethodParameterMetadata currentInvocation(Method method, Object[] arguments) {
+			return delegate().currentInvocation(method, arguments);
+		}
+
+		private MethodInvocationArgumentHolder delegate() {
 			try {
 				manager.getContext(RequestScoped.class);
 				return instance.select(ThreadLocalScopedArgumentHolder.class).get();
 			} catch (ContextNotActiveException e) {
 				return instance.select(SessionDestructionArgumentHolder.class).get();
 			}
+		}
+
+		@Override
+		public <T> T methodArgumentFor(Bean<T> parameterBean) {
+			return delegate().methodArgumentFor(parameterBean);
+		}
+
+		@Override
+		public void reset() {
+			delegate().reset();
 		}
 	}
 

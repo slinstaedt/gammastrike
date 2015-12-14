@@ -21,6 +21,7 @@ import javax.enterprise.inject.spi.AnnotatedParameter;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
+import javax.enterprise.inject.spi.Unmanaged;
 
 import org.apache.deltaspike.core.util.bean.BeanBuilder;
 import org.gammastrike.factory.api.annotation.Destroy;
@@ -37,11 +38,14 @@ public class MethodParameterMetadataBuilder {
 	private final BeanManager beanManager;
 	private final Map<AnnotatedMetadataReader<?>, Bean<?>> existingParameterBeans;
 	private final Map<AnnotatedMethod<?>, List<Bean<?>>> methodParameterBeans;
+	@SuppressWarnings("rawtypes")
+	private final ManualParameterLifecycle lifecycle;
 
 	public MethodParameterMetadataBuilder(BeanManager beanManager) {
 		this.beanManager = requireNonNull(beanManager);
 		this.existingParameterBeans = new HashMap<>();
 		this.methodParameterBeans = new HashMap<>();
+		this.lifecycle = new Unmanaged<>(beanManager, ManualParameterLifecycle.class).newInstance().produce().inject().postConstruct().get();
 	}
 
 	public Set<MethodParameterMetadata> buildMethodParameterMetadatas(AfterDeploymentValidation validation) {
@@ -56,9 +60,9 @@ public class MethodParameterMetadataBuilder {
 		return metadata;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected <T> Bean<T> createParameterBean(AfterBeanDiscovery discovery, AnnotatedParameter<?> parameter) {
 		AnnotatedMetadataReader<T> reader = AnnotatedMetadataReader.<T> create(beanManager, parameter);
-		@SuppressWarnings("unchecked")
 		Bean<T> parameterBean = (Bean<T>) existingParameterBeans.get(reader);
 		if (parameterBean != null) {
 			return parameterBean;
@@ -70,7 +74,7 @@ public class MethodParameterMetadataBuilder {
 			builder.beanLifecycle(VoidLifecycle.<T> instance());
 			parameterBean = builder.create();
 		} else {
-			builder.beanLifecycle(new ManualParameterLifecycle<T>());
+			builder.beanLifecycle(lifecycle);
 			if (!parameter.isAnnotationPresent(Manual.class)) {
 				builder.addQualifier(Manual.Literal.DEFAULT);
 			}
