@@ -11,7 +11,7 @@ import javax.enterprise.inject.spi.ProcessSyntheticAnnotatedType;
 import org.gammastrike.binding.api.BindingsScanner;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class ProcessTypeBindings/* <T> */extends ProcessAnnotatedBindings/* <AnnotatedType<T>> */{
+public class ProcessTypeBindings/* <T> */extends ProcessAnnotatedBindings/* <AnnotatedType<T>> */ {
 
 	public static <X> void fire(BeanManager manager, BindingsScanner scanner, ProcessAnnotatedType<X> delegate) {
 		new ProcessTypeBindings(scanner, delegate).fire(manager);
@@ -22,6 +22,11 @@ public class ProcessTypeBindings/* <T> */extends ProcessAnnotatedBindings/* <Ann
 	public ProcessTypeBindings(BindingsScanner scanner, ProcessAnnotatedType delegate) {
 		super(scanner, delegate.getAnnotatedType());
 		this.delegate = requireNonNull(delegate);
+	}
+
+	@Override
+	public AnnotatedType getAnnotated() {
+		return delegate.getAnnotatedType();
 	}
 
 	public Extension getSource() {

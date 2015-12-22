@@ -2,50 +2,41 @@ package org.gammastrike.proxy.impl;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 
-import javax.enterprise.context.spi.Contextual;
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.Bean;
 import javax.inject.Inject;
 
 import org.gammastrike.proxy.api.BeanProxyFactory;
 import org.gammastrike.proxy.api.BeanRuntimeInformationProvider;
+import org.gammastrike.proxy.api.Proxy;
 import org.gammastrike.proxy.api.ProxyFactory;
+import org.gammastrike.value.TypeClosure;
 
 public class DefaultBeanProxyFactory implements BeanProxyFactory {
 
+	private static final Class<?>[] STATIC_PROXY_TYPES = new Class<?>[] { Proxy.class, Serializable.class };
+
 	private final ProxyFactory proxyFactory;
 	private final BeanRuntimeInformationProvider informationProvider;
-	private final Instance<InvocationHandler> handlerInstance;
 
 	DefaultBeanProxyFactory() {
 		proxyFactory = null;
 		informationProvider = null;
-		handlerInstance = null;
 	}
 
 	@Inject
-	public DefaultBeanProxyFactory(ProxyFactory proxyFactory, BeanRuntimeInformationProvider informationProvider, Instance<InvocationHandler> handlerInstance) {
+	public DefaultBeanProxyFactory(ProxyFactory proxyFactory, BeanRuntimeInformationProvider informationProvider) {
 		this.proxyFactory = requireNonNull(proxyFactory);
 		this.informationProvider = requireNonNull(informationProvider);
-		this.handlerInstance = requireNonNull(handlerInstance);
 	}
 
 	@Override
-	public <T> T createBeanProxy(Contextual<T> contextual, CreationalContext<T> creationalContext) {
-		if (!(contextual instanceof Bean)) {
-			throw new UnsupportedOperationException("Can not handle contextual: " + contextual);
-		}
-
-		Bean<T> bean = (Bean<T>) contextual;
+	@SuppressWarnings("unchecked")
+	public <T> T createBeanProxy(Bean<T> bean, InvocationHandler handler) {
 		ClassLoader classLoader = informationProvider.provideClassLoader(bean);
-		Class<?>[] proxyClasses = informationProvider.extractImplementingClasses(bean);
-		InvocationHandler invocationHandler = handlerInstance.get();
-
-		@SuppressWarnings("unchecked")
-		T proxy = (T) proxyFactory.createProxy(classLoader, invocationHandler, proxyClasses);
-		return proxy;
+		TypeClosure typeClosure = informationProvider.extractImplementingClasses(bean).with(STATIC_PROXY_TYPES);
+		return (T) proxyFactory.createProxy(classLoader, handler, typeClosure.toClassArray());
 	}
 }

@@ -13,5 +13,10 @@
 			<artifactId>gammastrike-util</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.gammastrike.binding</groupId>
+			<artifactId>gammastrike-binding-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 </project>

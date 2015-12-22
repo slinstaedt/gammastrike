@@ -37,8 +37,7 @@ public class BoundedInstanceImpl<T> implements BoundedInstance<T>, Serializable 
 
 	public static BoundedInstance<Object> current() {
 		BeanManager manager = CDI.current().getBeanManager();
-		Set<Annotation> qualifiers = Collections.emptySet();
-		return new BoundedInstanceImpl<>(manager, Object.class, qualifiers);
+		return new BoundedInstanceImpl<>(manager, Object.class, Collections.emptySet());
 	}
 
 	private final BeanManager manager;

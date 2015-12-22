@@ -28,10 +28,6 @@ public class BindingManager implements Extension {
 		return boundedAnnotated;
 	}
 
-	void onShutdown(@Observes BeforeShutdown event) {
-		annotateds.clear();
-	}
-
 	<X> void processBean(@Observes ProcessBean<X> event) {
 	}
 
@@ -39,5 +35,9 @@ public class BindingManager implements Extension {
 		for (BoundedAnnotated annotated : event.getBoundedGroup().getBoundedAnnotateds()) {
 			annotateds.put(annotated.getAnnotated(), annotated);
 		}
+	}
+
+	void onShutdown(@Observes BeforeShutdown event) {
+		annotateds.clear();
 	}
 }

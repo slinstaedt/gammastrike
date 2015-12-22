@@ -21,11 +21,13 @@ import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanAttributes;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
 
 import org.apache.deltaspike.core.util.bean.BeanBuilder;
 import org.gammastrike.literal.DependentLiteral;
+import org.gammastrike.value.TypeClosure;
 
 /**
  * Annotation reader for various annotated sources.
@@ -95,7 +97,7 @@ public abstract class AnnotatedMetadataReader<T> {
 
 		protected CDIAnnotatedMetadataReader(Annotated annotated, Map<AnnotationMetaType, Set<Annotation>> metadata) {
 			super(metadata);
-			this.annotated = requireNonNull(annotated, "annotated");
+			this.annotated = requireNonNull(annotated);
 		}
 
 		@Override
@@ -112,8 +114,7 @@ public abstract class AnnotatedMetadataReader<T> {
 	private static class JavaMemberMetadataReader<T> extends AnnotatedMetadataReader<T> {
 
 		private final Type baseType;
-
-		private Set<Type> typeClosure;
+		private TypeClosure typeClosure;
 
 		protected JavaMemberMetadataReader(Type baseType, AccessibleObject member, Map<AnnotationMetaType, Set<Annotation>> metadata) {
 			this(baseType, metadata);
@@ -121,8 +122,8 @@ public abstract class AnnotatedMetadataReader<T> {
 
 		protected JavaMemberMetadataReader(Type baseType, Map<AnnotationMetaType, Set<Annotation>> metadata) {
 			super(metadata);
-			this.baseType = requireNonNull(baseType, "baseType");
-			this.typeClosure = collectTypes(baseType, new HashSet<Type>());
+			this.baseType = requireNonNull(baseType);
+			this.typeClosure = new TypeClosure(baseType);
 		}
 
 		@Override
@@ -132,22 +133,8 @@ public abstract class AnnotatedMetadataReader<T> {
 
 		@Override
 		public Set<Type> getTypeClosure() {
-			return Collections.unmodifiableSet(typeClosure);
+			return typeClosure.getTypes();
 		}
-	}
-
-	private static Set<Type> collectTypes(Type type, Set<Type> result) {
-		if (type instanceof Class) {
-			Class<?> clazz = (Class<?>) type;
-			collectTypes(clazz.getGenericSuperclass(), result);
-			for (Type genericInterface : clazz.getGenericInterfaces()) {
-				collectTypes(genericInterface, result);
-			}
-		} else if (type instanceof ParameterizedType) {
-			ParameterizedType parameterizedType = (ParameterizedType) type;
-			collectTypes(parameterizedType.getRawType(), result);
-		}
-		return result;
 	}
 
 	public static <T> AnnotatedMetadataReader<T> create(BeanManager manager, Annotated annotated) {
@@ -156,9 +143,13 @@ public abstract class AnnotatedMetadataReader<T> {
 	}
 
 	public static <T> AnnotatedMetadataReader<T> create(BeanManager manager, Bean<T> bean) {
-		Map<AnnotationMetaType, Set<Annotation>> metadata = Collections.<AnnotationMetaType, Set<Annotation>> singletonMap(AnnotationMetaType.QUALIFIER,
-				bean.getQualifiers());
+		Map<AnnotationMetaType, Set<Annotation>> metadata = Collections.singletonMap(AnnotationMetaType.QUALIFIER, bean.getQualifiers());
 		return new JavaMemberMetadataReader<T>(bean.getBeanClass(), metadata);
+	}
+
+	public static <T> AnnotatedMetadataReader<T> create(BeanManager manager, BeanAttributes<T> attributes) {
+		Map<AnnotationMetaType, Set<Annotation>> metadata = Collections.singletonMap(AnnotationMetaType.QUALIFIER, attributes.getQualifiers());
+		return new JavaMemberMetadataReader<T>(TypeClosure.from(attributes).getBaseClass(), metadata);
 	}
 
 	public static <T> AnnotatedMetadataReader<T> create(BeanManager manager, Class<T> type) {

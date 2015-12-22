@@ -80,7 +80,7 @@ public class MetaBindingType implements Serializable {
 	}
 
 	public BoundWith createBoundWithQualifier() {
-		return new BoundWithLiteral(javaType);
+		return BoundWith.Literal.of(javaType);
 	}
 
 	@Override

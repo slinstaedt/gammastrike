@@ -26,16 +26,13 @@ public class DiscoveryAwareBeanManager extends BeanManagerDecorator implements A
 	private static final long serialVersionUID = 1L;
 
 	private final BeanManager manager;
-
 	private final AfterBeanDiscovery discovery;
-
 	private final Map<AnnotatedMetadataReader<?>, Bean<?>> registeredBeans;
 
 	public DiscoveryAwareBeanManager(BeanManager manager, AfterBeanDiscovery discovery) {
-		this.manager = requireNonNull(manager, "manager");
-		this.discovery = requireNonNull(discovery, "discovery");
-
-		registeredBeans = new HashMap<>();
+		this.manager = requireNonNull(manager);
+		this.discovery = requireNonNull(discovery);
+		this.registeredBeans = new HashMap<>();
 	}
 
 	@Override

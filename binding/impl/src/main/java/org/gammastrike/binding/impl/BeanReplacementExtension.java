@@ -21,10 +21,6 @@ public class BeanReplacementExtension implements Extension {
 		this.beanReplacements = new HashSet<>();
 	}
 
-	void onShutdown(@Observes BeforeShutdown event) {
-		beanReplacements.clear();
-	}
-
 	<X> void processBoundedBean(@Observes ProcessBeanAttributes<X> event, BeanManager manager) {
 		Replacement<X> replacement = ProcessBoundedBean.fire(manager, event);
 
@@ -47,5 +43,9 @@ public class BeanReplacementExtension implements Extension {
 		for (Replacement<?> replacement : beanReplacements) {
 			event.addBean(replacement.getBean());
 		}
+	}
+
+	void onShutdown(@Observes BeforeShutdown event) {
+		beanReplacements.clear();
 	}
 }

@@ -25,8 +25,8 @@ public class BindingExtension implements Extension {
 		BeforeBindingDiscovery.fire(manager, scanner);
 	}
 
-	void onShutdown(@Observes BeforeShutdown event) {
-		scanner = null;
+	<X> void processTypeBindings(@Observes ProcessAnnotatedType<X> event, BeanManager manager) {
+		ProcessTypeBindings.fire(manager, scanner, event);
 	}
 
 	void processBoundedTypes(@Observes AfterTypeDiscovery event, BeanManager manager) {
@@ -35,13 +35,13 @@ public class BindingExtension implements Extension {
 		ProcessBoundedGroup.fire(manager, boundedGroups);
 	}
 
-	<X> void processTypeBindings(@Observes ProcessAnnotatedType<X> event, BeanManager manager) {
-		ProcessTypeBindings.fire(manager, scanner, event);
-	}
-
 	void throwDefinitionErrors(@Observes AfterBeanDiscovery event) {
 		for (Throwable error : scanner.getDefinitionErrors()) {
 			event.addDefinitionError(error);
 		}
+	}
+
+	void onShutdown(@Observes BeforeShutdown event) {
+		scanner = null;
 	}
 }

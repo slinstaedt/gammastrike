@@ -1,18 +1,15 @@
 package org.gammastrike.proxy.impl;
 
-import java.lang.reflect.Type;
-import java.util.Set;
-
 import javax.enterprise.inject.spi.Bean;
 
 import org.gammastrike.proxy.api.BeanRuntimeInformationProvider;
+import org.gammastrike.value.TypeClosure;
 
 public class DefaultBeanRuntimeInformationProvider implements BeanRuntimeInformationProvider {
 
 	@Override
-	public Class<?>[] extractImplementingClasses(Bean<?> bean) {
-		Set<Type> types = bean.getTypes();
-		return bean.getTypes().toArray(new Class<?>[types.size()]);
+	public TypeClosure extractImplementingClasses(Bean<?> bean) {
+		return TypeClosure.from(bean);
 	}
 
 	@Override

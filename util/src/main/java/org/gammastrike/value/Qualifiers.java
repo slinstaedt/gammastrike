@@ -1,4 +1,4 @@
-package org.gammastrike.util;
+package org.gammastrike.value;
 
 import static java.util.Objects.requireNonNull;
 
