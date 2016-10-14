@@ -170,8 +170,8 @@ public class ProxyingScopeExtension implements Extension {
 
 	void registeredProxyBeans(@Observes AfterBeanDiscovery event, BeanManager manager) {
 		for (Annotated annotated : proxiedTypes) {
-			TypeClosure closure = TypeClosure.from(annotated);
-			Bean<Object> bean = new BeanBuilder<Object>(manager).beanClass(closure.getBaseClass()).types(closure.getTypes()).scope(Dependent.class).create();
+			TypeClosure closure = TypeClosure.qualified(manager, annotated);
+			Bean<Object> bean = new BeanBuilder<>(manager).beanClass(closure.getBaseClass()).types(closure.getTypes()).scope(Dependent.class).create();
 			event.addBean(bean);
 		}
 	}

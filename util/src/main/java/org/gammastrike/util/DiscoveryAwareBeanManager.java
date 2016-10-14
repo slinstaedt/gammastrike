@@ -26,13 +26,21 @@ public class DiscoveryAwareBeanManager extends BeanManagerDecorator implements A
 	private static final long serialVersionUID = 1L;
 
 	private final BeanManager manager;
+
 	private final AfterBeanDiscovery discovery;
+
 	private final Map<AnnotatedMetadataReader<?>, Bean<?>> registeredBeans;
 
 	public DiscoveryAwareBeanManager(BeanManager manager, AfterBeanDiscovery discovery) {
-		this.manager = requireNonNull(manager);
-		this.discovery = requireNonNull(discovery);
-		this.registeredBeans = new HashMap<>();
+		this.manager = requireNonNull(manager, "manager");
+		this.discovery = requireNonNull(discovery, "discovery");
+
+		registeredBeans = new HashMap<>();
+	}
+
+	@Override
+	public BeanManager delegate() {
+		return manager;
 	}
 
 	@Override
@@ -45,8 +53,13 @@ public class DiscoveryAwareBeanManager extends BeanManagerDecorator implements A
 	}
 
 	@Override
-	public void addContext(Context context) {
-		discovery.addContext(context);
+	public Set<Bean<?>> getBeans(Type beanType, Annotation... qualifiers) {
+		Set<Bean<?>> beans = new HashSet<>(manager.getBeans(beanType, qualifiers));
+		AnnotatedMetadataReader<?> reader = AnnotatedMetadataReader.create(beanType, qualifiers);
+		if (registeredBeans.containsKey(reader)) {
+			beans.add(registeredBeans.get(reader));
+		}
+		return beans;
 	}
 
 	@Override
@@ -60,8 +73,8 @@ public class DiscoveryAwareBeanManager extends BeanManagerDecorator implements A
 	}
 
 	@Override
-	public BeanManager delegate() {
-		return manager;
+	public void addContext(Context context) {
+		discovery.addContext(context);
 	}
 
 	@Override
@@ -72,15 +85,5 @@ public class DiscoveryAwareBeanManager extends BeanManagerDecorator implements A
 	@Override
 	public <T> Iterable<AnnotatedType<T>> getAnnotatedTypes(Class<T> type) {
 		return discovery.getAnnotatedTypes(type);
-	}
-
-	@Override
-	public Set<Bean<?>> getBeans(Type beanType, Annotation... qualifiers) {
-		Set<Bean<?>> beans = new HashSet<>(manager.getBeans(beanType, qualifiers));
-		AnnotatedMetadataReader<?> reader = AnnotatedMetadataReader.create(beanType, qualifiers);
-		if (registeredBeans.containsKey(reader)) {
-			beans.add(registeredBeans.get(reader));
-		}
-		return beans;
 	}
 }

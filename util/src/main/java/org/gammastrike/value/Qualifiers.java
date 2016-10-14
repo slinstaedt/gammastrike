@@ -89,16 +89,8 @@ public class Qualifiers implements Iterable<Annotation>, Serializable {
 		}
 	}
 
-	public static final Qualifiers ANY = new Qualifiers(Collections.<Annotation> emptySet());
-
-	private static final long serialVersionUID = 1L;
-
 	public static Qualifiers from(Annotation... requiredQualifiers) {
 		return new Qualifiers(Arrays.asList(requiredQualifiers));
-	}
-
-	public static Qualifiers from(EventMetadata metadata) {
-		return new Qualifiers(metadata.getQualifiers());
 	}
 
 	public static Qualifiers from(Iterable<Annotation> requiredQualifiers) {
@@ -108,6 +100,14 @@ public class Qualifiers implements Iterable<Annotation>, Serializable {
 			return new Qualifiers(requiredQualifiers);
 		}
 	}
+
+	public static Qualifiers from(EventMetadata metadata) {
+		return new Qualifiers(metadata.getQualifiers());
+	}
+
+	public static final Qualifiers ANY = new Qualifiers(Collections.<Annotation>emptySet());
+
+	private static final long serialVersionUID = 1L;
 
 	private final Map<Class<? extends Annotation>, Annotation> annotations;
 
@@ -260,7 +260,7 @@ public class Qualifiers implements Iterable<Annotation>, Serializable {
 	}
 
 	public Qualifiers withoutTyped(Class<? extends Annotation> qualifierType) {
-		return withoutTyped(Collections.<Class<? extends Annotation>> singleton(qualifierType));
+		return withoutTyped(Collections.<Class<? extends Annotation>>singleton(qualifierType));
 	}
 
 	public Qualifiers withoutTyped(Iterable<Class<? extends Annotation>> qualifierTypes) {

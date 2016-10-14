@@ -10,7 +10,7 @@ import java.util.Set;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.spi.BeanAttributes;
 
-import org.gammastrike.literal.DefaultLiteral;
+import org.apache.deltaspike.core.api.literal.DefaultLiteral;
 
 /**
  * A {@link BeanAttributes} implementation, that allows modification after creation.
@@ -22,7 +22,7 @@ import org.gammastrike.literal.DefaultLiteral;
  */
 public class MutableBeanAttributes<T> implements BeanAttributes<T> {
 
-	private static final Set<Annotation> DEFAULT_QUALIFIERS = Collections.<Annotation> singleton(DefaultLiteral.INSTANCE);
+	private static final Set<Annotation> DEFAULT_QUALIFIERS = Collections.<Annotation>singleton(new DefaultLiteral());
 
 	private Set<Type> types;
 	private Set<Annotation> qualifiers;
@@ -45,31 +45,6 @@ public class MutableBeanAttributes<T> implements BeanAttributes<T> {
 		copyFrom(delegate);
 	}
 
-	public void addQualifiers(Annotation... qualifiers) {
-		this.qualifiers.addAll(Arrays.asList(qualifiers));
-	}
-
-	public void addQualifiers(Set<Annotation> qualifiers) {
-		this.qualifiers.addAll(qualifiers);
-	}
-
-	@SafeVarargs
-	public final void addStereotypes(Class<? extends Annotation>... stereoTypes) {
-		this.stereotypes.addAll(Arrays.asList(stereoTypes));
-	}
-
-	public void addStereotypes(Set<Class<? extends Annotation>> stereoTypes) {
-		this.stereotypes.addAll(stereoTypes);
-	}
-
-	public void addTypes(Set<Type> types) {
-		this.types.addAll(types);
-	}
-
-	public void addTypes(Type... types) {
-		this.types.addAll(Arrays.asList(types));
-	}
-
 	public void copyFrom(BeanAttributes<?> delegate) {
 		setTypes(delegate.getTypes());
 		setQualifiers(delegate.getQualifiers());
@@ -80,8 +55,20 @@ public class MutableBeanAttributes<T> implements BeanAttributes<T> {
 	}
 
 	@Override
-	public String getName() {
-		return name;
+	public Set<Type> getTypes() {
+		return types;
+	}
+
+	public void setTypes(Set<Type> types) {
+		this.types = new HashSet<>(types);
+	}
+
+	public void addTypes(Set<Type> types) {
+		this.types.addAll(types);
+	}
+
+	public void addTypes(Type... types) {
+		this.types.addAll(Arrays.asList(types));
 	}
 
 	@Override
@@ -89,9 +76,38 @@ public class MutableBeanAttributes<T> implements BeanAttributes<T> {
 		return qualifiers.isEmpty() ? DEFAULT_QUALIFIERS : qualifiers;
 	}
 
+	public void addQualifiers(Set<Annotation> qualifiers) {
+		this.qualifiers.addAll(qualifiers);
+	}
+
+	public void addQualifiers(Annotation... qualifiers) {
+		this.qualifiers.addAll(Arrays.asList(qualifiers));
+	}
+
+	public void setQualifiers(Set<Annotation> qualifiers) {
+		this.qualifiers = new HashSet<>(qualifiers);
+	}
+
 	@Override
 	public Class<? extends Annotation> getScope() {
 		return scope != null ? scope : Dependent.class;
+	}
+
+	public boolean hasScope(Class<? extends Annotation> scope) {
+		return this.scope == scope;
+	}
+
+	public void setScope(Class<? extends Annotation> scope) {
+		this.scope = scope;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	@Override
@@ -99,13 +115,17 @@ public class MutableBeanAttributes<T> implements BeanAttributes<T> {
 		return stereotypes;
 	}
 
-	@Override
-	public Set<Type> getTypes() {
-		return types;
+	public void setStereotypes(Set<Class<? extends Annotation>> stereoTypes) {
+		this.stereotypes = new HashSet<>(stereoTypes);
 	}
 
-	public boolean hasScope(Class<? extends Annotation> scope) {
-		return this.scope == scope;
+	public void addStereotypes(Set<Class<? extends Annotation>> stereoTypes) {
+		this.stereotypes.addAll(stereoTypes);
+	}
+
+	@SafeVarargs
+	public final void addStereotypes(Class<? extends Annotation>... stereoTypes) {
+		this.stereotypes.addAll(Arrays.asList(stereoTypes));
 	}
 
 	@Override
@@ -115,25 +135,5 @@ public class MutableBeanAttributes<T> implements BeanAttributes<T> {
 
 	public void setAlternative(boolean alternative) {
 		this.alternative = alternative;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public void setQualifiers(Set<Annotation> qualifiers) {
-		this.qualifiers = new HashSet<>(qualifiers);
-	}
-
-	public void setScope(Class<? extends Annotation> scope) {
-		this.scope = scope;
-	}
-
-	public void setStereotypes(Set<Class<? extends Annotation>> stereoTypes) {
-		this.stereotypes = new HashSet<>(stereoTypes);
-	}
-
-	public void setTypes(Set<Type> types) {
-		this.types = new HashSet<>(types);
 	}
 }

@@ -38,6 +38,13 @@ public abstract class BeanManagerDecorator implements BeanManager, Serializable 
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Returns the delegation instance
+	 *
+	 * @return the delegation instance
+	 */
+	public abstract BeanManager delegate();
+
 	@Override
 	public boolean areInterceptorBindingsEquivalent(Annotation interceptorBinding1, Annotation interceptorBinding2) {
 		return delegate().areInterceptorBindingsEquivalent(interceptorBinding1, interceptorBinding2);
@@ -92,13 +99,6 @@ public abstract class BeanManagerDecorator implements BeanManager, Serializable 
 	public <T> InjectionTarget<T> createInjectionTarget(AnnotatedType<T> type) {
 		return delegate().createInjectionTarget(type);
 	}
-
-	/**
-	 * Returns the delegation instance
-	 * 
-	 * @return the delegation instance
-	 */
-	public abstract BeanManager delegate();
 
 	@Override
 	public boolean equals(Object obj) {
